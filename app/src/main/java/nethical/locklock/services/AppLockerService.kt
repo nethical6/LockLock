@@ -1,7 +1,6 @@
 package nethical.locklock.services
 
 import android.accessibilityservice.AccessibilityService
-import android.accessibilityservice.AccessibilityServiceInfo
 import android.annotation.SuppressLint
 import android.content.BroadcastReceiver
 import android.content.Context
@@ -10,7 +9,6 @@ import android.content.IntentFilter
 import android.os.Build
 import android.util.Log
 import android.view.accessibility.AccessibilityEvent
-import androidx.core.content.ContextCompat.startActivity
 import nethical.locklock.AppLockActivity
 import nethical.locklock.services.LockedAppInfo.lockedApps
 import kotlin.jvm.java
@@ -25,24 +23,28 @@ class AppLockerService : AccessibilityService() {
     private var lastPackage = ""
     private var temporarilyUnlocked = ""
     override fun onAccessibilityEvent(event: AccessibilityEvent?) {
-        if (event == null || lastPackage == packageName) return
-
-        val packageName = event.packageName?.toString() ?: return
+        val openedApp = event?.packageName?.toString() ?: return
 
         // Clear unlock if user has left the previously unlocked app
-        if (lastPackage != packageName && temporarilyUnlocked.isNotEmpty()) {
-            temporarilyUnlocked = ""
+        if(event.eventType == AccessibilityEvent.TYPE_WINDOW_STATE_CHANGED && lastPackage != packageName){
+            if ((lastPackage != openedApp ) && temporarilyUnlocked.isNotEmpty()) {
+                temporarilyUnlocked = ""
+            }
         }
-        lastPackage = packageName
+        if (lastPackage == openedApp) return
 
-        Log.d("AppBlockerService", "Switched to app $packageName")
-        if (lockedApps.contains(packageName) && !temporarilyUnlocked.contains(packageName)) {
+        lastPackage = openedApp
+
+        Log.d("AppBlockerService", "Switched to app $openedApp")
+        if (lockedApps.contains(openedApp) && temporarilyUnlocked==(openedApp)) {
             return
         }
-        if (lockedApps.contains(packageName)) {
+        if (lockedApps.contains(openedApp)) {
             val intent = Intent(this, AppLockActivity::class.java).apply {
                 addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP)
-                putExtra("locked_package", packageName)
+                addFlags(Intent.FLAG_ACTIVITY_EXCLUDE_FROM_RECENTS)
+
+                putExtra("locked_package", openedApp)
             }
             startActivity(intent)
         }
@@ -55,6 +57,7 @@ class AppLockerService : AccessibilityService() {
         override fun onReceive(context: Context, intent: Intent) {
             val unlockedPackage = intent.getStringExtra("packageName") ?: return
             temporarilyUnlocked = unlockedPackage
+            lastPackage = packageName
             Log.d("AppBlockerService", "Unlocked $unlockedPackage")
         }
     }
