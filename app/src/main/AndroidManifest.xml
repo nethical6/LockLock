@@ -5,6 +5,7 @@
     <uses-permission
         android:name="android.permission.QUERY_ALL_PACKAGES"
         tools:ignore="PackageVisibilityPolicy,QueryAllPackagesPermission" />
+
     <application
         android:allowBackup="true"
         android:dataExtractionRules="@xml/data_extraction_rules"
@@ -16,9 +17,17 @@
         android:theme="@style/Theme.LockLock"
         tools:targetApi="31">
         <activity
+            android:name=".AppLockActivity"
+            android:exported="false"
+            android:label="@string/title_activity_app_lock"
+            android:excludeFromRecents="true"
+            android:launchMode="singleTop"
+            android:theme="@style/Theme.LockLock" />
+        <activity
             android:name=".MainActivity"
             android:exported="true"
             android:label="@string/app_name"
+
             android:theme="@style/Theme.LockLock">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
@@ -26,6 +35,18 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+        <service
+            android:name=".services.AppLockerService"
+            android:permission="android.permission.BIND_ACCESSIBILITY_SERVICE"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.accessibilityservice.AccessibilityService" />
+            </intent-filter>
+            <meta-data
+                android:name="android.accessibilityservice"
+                android:resource="@xml/app_locker_service" />
+        </service>
+
     </application>
 
 </manifest>

@@ -61,6 +61,7 @@ import androidx.compose.ui.unit.sp
 import nethical.locklock.data.AppInfo
 import nethical.locklock.ui.theme.LockLockTheme
 import androidx.core.content.edit
+import nethical.locklock.services.LockedAppInfo
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -146,8 +147,10 @@ fun AppSelectionScreen() {
                     onToggle = { packageName ->
                         if (selectedApps.contains(packageName)) {
                             selectedApps.remove(packageName)
+                            LockedAppInfo.lockedApps.remove(packageName)
                         } else {
                             selectedApps.add(packageName)
+                            LockedAppInfo.lockedApps.add(packageName)
                         }
                         isSaved = false
 

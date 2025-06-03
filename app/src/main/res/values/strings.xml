@@ -1,3 +1,5 @@
 <resources>
     <string name="app_name">LockLock</string>
+    <string name="title_activity_app_lock">AppLockActivity</string>
+    <string name="accessibility_service_description">Lock apps</string>
 </resources>
