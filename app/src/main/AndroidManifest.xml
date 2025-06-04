@@ -46,6 +46,20 @@
                 android:resource="@xml/app_locker_service" />
         </service>
 
+
+        <receiver
+            android:name=".DeviceAdmin"
+            android:description="@string/admin_permission_desc"
+            android:exported="false"
+            android:permission="android.permission.BIND_DEVICE_ADMIN">
+            <intent-filter>
+                <action android:name="android.app.action.DEVICE_ADMIN_ENABLED" />
+            </intent-filter>
+
+            <meta-data
+                android:name="android.app.device_admin"
+                android:resource="@xml/device_admin_receiver" />
+        </receiver>
     </application>
 
 </manifest>

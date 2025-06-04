@@ -1,5 +1,7 @@
-package nethical.locklock
+package nethical.locklock.utils
 
+import android.R.attr.name
+import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
 import androidx.compose.ui.graphics.asImageBitmap
@@ -24,7 +26,7 @@ suspend fun reloadApps(
                         AppInfo(
                             name = appInfo.loadLabel(packageManager).toString(),
                             packageName = appInfo.packageName,
-                            icon = packageManager.getApplicationIcon(appInfo.packageName).toBitmap(64, 64).asImageBitmap()
+                            icon = packageManager.getApplicationIcon(appInfo.packageName).toBitmap(64, 64).asImageBitmap(),
                         )
                     }
                 }
@@ -34,4 +36,14 @@ suspend fun reloadApps(
             Result.failure(e)
         }
     }
+}
+
+fun loadAppInfo(context: Context, packageName: String): AppInfo {
+    val packageManager = context.packageManager
+    val applicationInfo = packageManager.getApplicationInfo(packageName, 0)
+    return AppInfo(
+        icon = packageManager.getApplicationIcon(applicationInfo).toBitmap(64, 64).asImageBitmap(),
+        name = packageManager.getApplicationLabel(applicationInfo).toString(),
+        packageName = packageName
+    )
 }

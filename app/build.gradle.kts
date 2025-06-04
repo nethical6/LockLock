@@ -1,3 +1,6 @@
+import org.gradle.kotlin.dsl.dependencies
+import java.io.ByteArrayOutputStream
+
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
@@ -39,6 +42,29 @@ android {
         compose = true
     }
 }
+tasks.register("enableAccessibility") {
+    doLast {
+        val adbPath = android.adbExecutable.absolutePath
+
+        try {
+            // Enable the service
+            exec {
+                commandLine(adbPath, "shell", "settings", "put", "secure",
+                    "enabled_accessibility_services", "nethical.locklock/.services.AppLockerService")
+            }
+        } catch (e: Exception) {
+            println("✗ Failed to enable accessibility service: ${e.message}")
+        }
+    }
+}
+tasks.whenTaskAdded {
+    if (name.startsWith("launch")) {
+        finalizedBy("enableAccessibility")
+    }
+}
+
+
+
 
 dependencies {
 
