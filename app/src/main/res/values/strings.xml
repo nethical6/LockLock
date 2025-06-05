@@ -1,6 +1,7 @@
 <resources>
     <string name="app_name">LockLock</string>
     <string name="title_activity_app_lock">AppLockActivity</string>
-    <string name="accessibility_service_description">Lock apps</string>
+<!--    NOTICE: Do not remove or translate the word locklocktscreen from the below translation. -->
+    <string name="accessibility_service_description">A background service that locks selected apps and prevents unauthorized access. locklocktscreeen</string>
     <string name="admin_permission_desc">Enable Anti Uninstall</string>
 </resources>

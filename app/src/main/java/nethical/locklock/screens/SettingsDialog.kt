@@ -1,5 +1,6 @@
 package nethical.locklock.screens
 
+import android.content.Context
 import android.content.Intent
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.animateFloatAsState
@@ -35,6 +36,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -54,6 +56,8 @@ import androidx.compose.ui.window.DialogProperties
 import androidx.core.content.ContextCompat.startActivity
 import nethical.locklock.AppLockActivity
 import nethical.locklock.screens.components.AnimatedSwitch
+import androidx.core.content.edit
+import nethical.locklock.services.AppLockerInfo
 
 @Composable
 fun SettingsDialog(
@@ -63,14 +67,18 @@ fun SettingsDialog(
     fun onDismiss() {
         isVisible.value = false
     }
-    // Settings states - you can replace these with your actual state management
     var enableAntiUninstall by remember { mutableStateOf(true) }
-    var enableBiometric by remember { mutableStateOf(false) }
-    var enableAutoLock by remember { mutableStateOf(true) }
-    var enableVibration by remember { mutableStateOf(false) }
-    var enableDarkMode by remember { mutableStateOf(false) }
-    var enableTimeLimit by remember { mutableStateOf(true) }
-    var enableBreakReminder by remember { mutableStateOf(false) }
+
+    LaunchedEffect(enableAntiUninstall) {
+        val additionalInfoSp = context.getSharedPreferences("additional_info",Context.MODE_PRIVATE)
+        additionalInfoSp.edit(commit = true) {
+            putBoolean(
+                "is_anti_uninstall",
+                enableAntiUninstall
+            )
+        }
+        AppLockerInfo.isAntiUninstallOn = false
+    }
 
     if (isVisible.value) {
         Dialog(

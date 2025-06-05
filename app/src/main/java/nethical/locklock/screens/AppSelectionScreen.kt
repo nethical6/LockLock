@@ -54,7 +54,7 @@ import androidx.compose.ui.unit.sp
 import androidx.core.content.edit
 import nethical.locklock.data.AppInfo
 import nethical.locklock.screens.components.AnimatedSwitch
-import nethical.locklock.services.LockedAppInfo
+import nethical.locklock.services.AppLockerInfo
 import nethical.locklock.utils.reloadApps
 
 @Composable
@@ -185,10 +185,10 @@ fun AppSelectionScreen() {
                     onToggle = { packageName ->
                         if (selectedApps.contains(packageName)) {
                             selectedApps.remove(packageName)
-                            LockedAppInfo.lockedApps.remove(packageName)
+                            AppLockerInfo.lockedApps.remove(packageName)
                         } else {
                             selectedApps.add(packageName)
-                            LockedAppInfo.lockedApps.add(packageName)
+                            AppLockerInfo.lockedApps.add(packageName)
                         }
                         isSaved = false
                     },

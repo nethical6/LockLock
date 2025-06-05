@@ -1,27 +1,36 @@
 package nethical.locklock.services
 
 import android.accessibilityservice.AccessibilityService
+import android.accessibilityservice.AccessibilityService.GLOBAL_ACTION_HOME
 import android.annotation.SuppressLint
 import android.content.BroadcastReceiver
 import android.content.Context
+import android.content.Context.MODE_PRIVATE
 import android.content.Intent
 import android.content.IntentFilter
 import android.os.Build
 import android.util.Log
 import android.view.accessibility.AccessibilityEvent
+import android.view.accessibility.AccessibilityNodeInfo
+import androidx.core.content.ContextCompat.registerReceiver
+import androidx.core.content.ContextCompat.startActivity
 import nethical.locklock.AppLockActivity
-import nethical.locklock.services.LockedAppInfo.lockedApps
+import java.util.Locale
 import kotlin.jvm.java
 
 const val INTENT_ACTION_APP_UNLOCKED = "nethical.locklock.UNLOCKED"
-object LockedAppInfo {
+val ANTI_UNINSTALL_KEYWORDS = hashSetOf<String>("uninstall","forcestop","security","privacy","shortcut","locklocktscreen","admin")
+object AppLockerInfo {
     var lockedApps = hashSetOf<String>()
+    var isAntiUninstallOn = true
 }
 
 
 class AppLockerService : AccessibilityService() {
     private var lastPackage = ""
     private var temporarilyUnlocked = ""
+    private var keywordsFound = hashSetOf<String>()
+
     override fun onAccessibilityEvent(event: AccessibilityEvent?) {
         val openedApp = event?.packageName?.toString() ?: return
 
@@ -31,15 +40,19 @@ class AppLockerService : AccessibilityService() {
                 temporarilyUnlocked = ""
             }
         }
+        if(event.packageName=="com.android.settings" && AppLockerInfo.isAntiUninstallOn){
+            traverseNodesForKeywords(rootInActiveWindow)
+        }
+
         if (lastPackage == openedApp) return
 
         lastPackage = openedApp
 
         Log.d("AppBlockerService", "Switched to app $openedApp")
-        if (lockedApps.contains(openedApp) && temporarilyUnlocked==(openedApp)) {
+        if (AppLockerInfo.lockedApps.contains(openedApp) && temporarilyUnlocked==(openedApp)) {
             return
         }
-        if (lockedApps.contains(openedApp)) {
+        if (AppLockerInfo.lockedApps.contains(openedApp)) {
             val intent = Intent(this, AppLockActivity::class.java).apply {
                 addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP)
                 addFlags(Intent.FLAG_ACTIVITY_EXCLUDE_FROM_RECENTS)
@@ -66,9 +79,11 @@ class AppLockerService : AccessibilityService() {
     override fun onServiceConnected() {
         super.onServiceConnected()
         val selectedAppsSp = getSharedPreferences("selected_apps", MODE_PRIVATE)
+        val additionalInfoSp = getSharedPreferences("additional_info",Context.MODE_PRIVATE)
 
-        lockedApps = selectedAppsSp.getStringSet("selected_apps",emptySet<String>())?.toHashSet() ?: hashSetOf()
-
+        AppLockerInfo.lockedApps = selectedAppsSp.getStringSet("selected_apps",emptySet<String>())?.toHashSet() ?: hashSetOf()
+        AppLockerInfo.isAntiUninstallOn = additionalInfoSp.getBoolean("is_anti_uninstall",false)
+        
         val filter = IntentFilter().apply {
             addAction(INTENT_ACTION_APP_UNLOCKED)
         }
@@ -84,4 +99,36 @@ class AppLockerService : AccessibilityService() {
         super.onDestroy()
     }
 
+    fun traverseNodesForKeywords(
+        node: AccessibilityNodeInfo?
+    ) {
+        if (node == null) {
+            return
+        }
+        if (node.className != null && node.className == "android.widget.TextView") {
+            val nodeText = node.text
+            if (nodeText != null) {
+                val editTextContent = nodeText.toString().lowercase(Locale.getDefault())
+                ANTI_UNINSTALL_KEYWORDS.forEachIndexed { i, word ->
+                    if (editTextContent.replace(" ","").contains(word)) {
+                        keywordsFound.add(word)
+                        Log.d("AntiUninstall","Found a Blocked Word:  $word")
+                    }
+                    if(keywordsFound.isNotEmpty() && editTextContent.contains("locklock")){
+                        performGlobalAction(GLOBAL_ACTION_HOME)
+                        keywordsFound.clear()
+                        return
+                    }
+                    if(i==ANTI_UNINSTALL_KEYWORDS.size-1) keywordsFound.clear()
+                }
+            }
+        }
+
+        for (i in 0 until node.childCount) {
+            val childNode = node.getChild(i)
+            traverseNodesForKeywords(childNode)
+        }
+    }
+
 }
+
