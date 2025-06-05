@@ -118,7 +118,7 @@ fun PermissionRequestScreen(
         PermissionCard(
             icon = Icons.Default.Build,
             title = "Accessibility Service",
-            description = "Allows the app to interact with other apps and system UI to provide enhanced automation and assistance features. This helps us deliver seamless user interactions and improve app functionality.",
+            description = "If you see ‘Restricted settings,’ please uninstall this app and reinstall it directly through the F-Droid app, instead of using an APK from any other source (including the F-Droid website).",
             isGranted = accessibilityGranted,
             onClick = {
                 openAccessibilityServiceScreen(context, AppLockerService::class.java)
@@ -131,7 +131,7 @@ fun PermissionRequestScreen(
         PermissionCard(
             icon = Icons.Default.Person,
             title = "Device Administrator",
-            description = "Enables advanced device management capabilities including screen lock, device wipe for security, and policy enforcement. This ensures your device remains secure and compliant with organizational requirements.",
+            description = "Required for anti-uninstall protection. Rest assured, granting this permission will not enable the feature automatically — it remains disabled until you manually activate it in the settings.",
             isGranted = deviceAdminGranted,
             onClick = {
                 openDeviceAdmin(context)

@@ -181,14 +181,14 @@ fun PinSetupScreen(
                 modifier = Modifier.padding(16.dp)
             ) {
                 Text(
-                    text = "Notice",
+                    text = "USER AGREEMENT",
                     style = MaterialTheme.typography.titleSmall,
                     fontWeight = FontWeight.SemiBold,
                     color = MaterialTheme.colorScheme.onSurface
                 )
                 Spacer(modifier = Modifier.height(8.dp))
                 Text(
-                    text = "Please note down the answer to your recovery question somewhere safe. You won't be allowed to change the passcode with out it.",
+                    text = "While LockLock provides strong protection, it cannot guarantee 100% security. Please use the app at your own discretion.",
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                     lineHeight = 18.sp
