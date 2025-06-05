@@ -2,6 +2,7 @@ package nethical.locklock.screens
 
 import android.content.Context
 import android.content.Intent
+import android.widget.Toast
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.spring
@@ -57,7 +58,10 @@ import androidx.core.content.ContextCompat.startActivity
 import nethical.locklock.AppLockActivity
 import nethical.locklock.screens.components.AnimatedSwitch
 import androidx.core.content.edit
+import nethical.locklock.DeviceAdmin
 import nethical.locklock.services.AppLockerInfo
+import nethical.locklock.utils.isDeviceAdminEnabled
+import nethical.locklock.utils.openDeviceAdmin
 
 @Composable
 fun SettingsDialog(
@@ -82,7 +86,7 @@ fun SettingsDialog(
                 enableAntiUninstall
             )
         }
-        AppLockerInfo.isAntiUninstallOn = false
+        AppLockerInfo.isAntiUninstallOn = enableAntiUninstall
     }
 
     if (isVisible.value) {
@@ -151,7 +155,16 @@ fun SettingsDialog(
                                 subtitle = "Get notified about app locks and breaks",
                                 icon = Icons.Default.Lock,
                                 checked = enableAntiUninstall,
-                                onCheckedChange = { enableAntiUninstall = it }
+                                onCheckedChange = {
+                                    val isDeviceAdmin = isDeviceAdminEnabled(context, DeviceAdmin::class.java)
+                                    if(isDeviceAdmin) {
+                                        enableAntiUninstall = it
+                                    }else{
+                                        Toast.makeText(context,"Please enable device admin to use this feature",
+                                            Toast.LENGTH_SHORT).show()
+                                        openDeviceAdmin(context)
+                                    }
+                                }
                             )
                         }
                         item {

@@ -39,4 +39,9 @@ class AppLockActivity : ComponentActivity() {
             }
         }
     }
+
+    override fun onStop() {
+        super.onStop()
+        finish()
+    }
 }

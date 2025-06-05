@@ -13,14 +13,21 @@ import android.os.SystemClock
 import android.util.Log
 import android.view.accessibility.AccessibilityEvent
 import android.view.accessibility.AccessibilityNodeInfo
+import android.view.inputmethod.InputMethodInfo
+import android.view.inputmethod.InputMethodManager
+import android.widget.Toast
+import androidx.core.content.ContextCompat.getSystemService
 import androidx.core.content.ContextCompat.registerReceiver
 import androidx.core.content.ContextCompat.startActivity
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import nethical.locklock.AppLockActivity
+import nethical.locklock.utils.getBackgroundSystemApps
+import nethical.locklock.utils.getKeyboards
 import java.util.Locale
 import kotlin.jvm.java
 
@@ -29,6 +36,7 @@ val ANTI_UNINSTALL_KEYWORDS = hashSetOf<String>("uninstall","forcestop","securit
 object AppLockerInfo {
     var lockedApps = hashSetOf<String>()
     var isAntiUninstallOn = false
+    var systemPackages = hashSetOf<String>()
 }
 
 
@@ -39,7 +47,6 @@ class AppLockerService : AccessibilityService() {
     var lastBackPressTimeStamp: Long =
         SystemClock.uptimeMillis()
 
-    private var lockLaunchJob: Job? = null
     override fun onAccessibilityEvent(event: AccessibilityEvent?) {
         val openedApp = event?.packageName?.toString() ?: return
 
@@ -53,7 +60,7 @@ class AppLockerService : AccessibilityService() {
             traverseNodesForKeywords(rootInActiveWindow)
         }
 
-        if (lastPackage == openedApp) return
+        if (lastPackage == openedApp || AppLockerInfo.systemPackages.contains(openedApp) || getKeyboards(this).contains(openedApp)) return
 
         lastPackage = openedApp
 
@@ -61,20 +68,15 @@ class AppLockerService : AccessibilityService() {
         if (AppLockerInfo.lockedApps.contains(openedApp) && temporarilyUnlocked==(openedApp)) {
             return
         }
-        if (AppLockerInfo.lockedApps.contains(openedApp) && lockLaunchJob?.isActive != true) {
-            lockLaunchJob?.cancel()
-            pressHome()
-            lockLaunchJob = CoroutineScope(Dispatchers.Main).launch {
-                delay(1000) // 1 second delay
-
-                val intent = Intent(this@AppLockerService, AppLockActivity::class.java).apply {
-                    addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP)
-                    addFlags(Intent.FLAG_ACTIVITY_EXCLUDE_FROM_RECENTS)
-                    putExtra("locked_package", openedApp)
-                }
-
-                startActivity(intent)
+        if (AppLockerInfo.lockedApps.contains(openedApp)) {
+            val intent = Intent(this@AppLockerService, AppLockActivity::class.java).apply {
+                addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP)
+                addFlags(Intent.FLAG_ACTIVITY_EXCLUDE_FROM_RECENTS)
+                putExtra("locked_package", openedApp)
             }
+
+            startActivity(intent)
+
         }
     }
 
@@ -85,7 +87,9 @@ class AppLockerService : AccessibilityService() {
         override fun onReceive(context: Context, intent: Intent) {
             val unlockedPackage = intent.getStringExtra("packageName") ?: return
             temporarilyUnlocked = unlockedPackage
+
             lastPackage = packageName
+
             Log.d("AppBlockerService", "Unlocked $unlockedPackage")
         }
     }
@@ -106,6 +110,11 @@ class AppLockerService : AccessibilityService() {
             registerReceiver(unlockReceiver, filter, RECEIVER_EXPORTED)
         } else {
             registerReceiver(unlockReceiver, filter)
+        }
+        CoroutineScope(Dispatchers.IO).launch {
+            val systemApps = getBackgroundSystemApps(this@AppLockerService)
+            AppLockerInfo.systemPackages = systemApps.map { it.packageName }.toHashSet()
+            AppLockerInfo.systemPackages.addAll(getKeyboards(this@AppLockerService))
         }
 
     }

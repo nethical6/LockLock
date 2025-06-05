@@ -18,6 +18,9 @@ import androidx.compose.ui.platform.LocalContext
 import nethical.locklock.ui.theme.LockLockTheme
 import nethical.locklock.screens.AppSelectionScreen
 import nethical.locklock.screens.onboard.OnBoardScreen
+import nethical.locklock.services.AppLockerService
+import nethical.locklock.utils.getBackgroundSystemApps
+import nethical.locklock.utils.isAccessibilityServiceEnabled
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -29,6 +32,10 @@ class MainActivity : ComponentActivity() {
             LaunchedEffect(Unit) {
                 val setupSp = context.getSharedPreferences("isSetupDone", MODE_PRIVATE)
                 isOnboardDone.value = setupSp.contains("isSetupDone")
+
+                val isAccessibilityEnabled = isAccessibilityServiceEnabled(context,
+                    AppLockerService::class.java)
+                if(isOnboardDone.value) isOnboardDone.value = isAccessibilityEnabled
             }
             LockLockTheme {
                 Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->

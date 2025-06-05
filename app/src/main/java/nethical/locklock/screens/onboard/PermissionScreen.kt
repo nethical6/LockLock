@@ -33,6 +33,8 @@ import nethical.locklock.screens.components.PermissionCard
 import nethical.locklock.services.AppLockerService
 import nethical.locklock.utils.isAccessibilityServiceEnabled
 import nethical.locklock.utils.isDeviceAdminEnabled
+import nethical.locklock.utils.openAccessibilityServiceScreen
+import nethical.locklock.utils.openDeviceAdmin
 import kotlin.jvm.java
 
 @Composable
@@ -44,6 +46,10 @@ fun PermissionRequestScreen(
     var deviceAdminGranted by remember { mutableStateOf(false) }
 
     val lifecycleOwner = LocalLifecycleOwner.current
+
+    LaunchedEffect(Unit) {
+        isNextEnabled.value = false
+    }
 
     DisposableEffect(lifecycleOwner) {
         val observer = LifecycleEventObserver { _, event ->
@@ -63,7 +69,7 @@ fun PermissionRequestScreen(
             lifecycleOwner.lifecycle.removeObserver(observer)
         }
     }
-    LaunchedEffect(accessibilityGranted,deviceAdminGranted) {
+    LaunchedEffect(accessibilityGranted&&deviceAdminGranted) {
         isNextEnabled.value = (accessibilityGranted&&deviceAdminGranted)
     }
     Column(
@@ -115,8 +121,7 @@ fun PermissionRequestScreen(
             description = "Allows the app to interact with other apps and system UI to provide enhanced automation and assistance features. This helps us deliver seamless user interactions and improve app functionality.",
             isGranted = accessibilityGranted,
             onClick = {
-                val intent = Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS)
-                context.startActivity(intent)
+                openAccessibilityServiceScreen(context, AppLockerService::class.java)
             }
         )
 
@@ -129,12 +134,7 @@ fun PermissionRequestScreen(
             description = "Enables advanced device management capabilities including screen lock, device wipe for security, and policy enforcement. This ensures your device remains secure and compliant with organizational requirements.",
             isGranted = deviceAdminGranted,
             onClick = {
-                val componentName = ComponentName(context, DeviceAdmin::class.java)
-                val intent = Intent(DevicePolicyManager.ACTION_ADD_DEVICE_ADMIN).apply {
-                    putExtra(DevicePolicyManager.EXTRA_DEVICE_ADMIN, componentName)
-                    putExtra(DevicePolicyManager.EXTRA_ADD_EXPLANATION, "This permission is required to enable anti uninstall.")
-                }
-                context.startActivity(intent)
+                openDeviceAdmin(context)
             }
         )
 
