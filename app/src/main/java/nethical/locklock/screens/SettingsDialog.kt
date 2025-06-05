@@ -26,6 +26,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -71,12 +72,13 @@ fun SettingsDialog(
     fun onDismiss() {
         isVisible.value = false
     }
+
     var enableAntiUninstall by remember { mutableStateOf(false) }
-    val additionalInfoSp = context.getSharedPreferences("additional_info",Context.MODE_PRIVATE)
+    val additionalInfoSp = context.getSharedPreferences("additional_info", Context.MODE_PRIVATE)
 
     LaunchedEffect(Unit) {
-        val additionalInfoSp = context.getSharedPreferences("additional_info",Context.MODE_PRIVATE)
-        enableAntiUninstall = additionalInfoSp.getBoolean("is_anti_uninstall",false)
+        val additionalInfoSp = context.getSharedPreferences("additional_info", Context.MODE_PRIVATE)
+        enableAntiUninstall = additionalInfoSp.getBoolean("is_anti_uninstall", false)
     }
 
     LaunchedEffect(enableAntiUninstall) {
@@ -89,7 +91,14 @@ fun SettingsDialog(
         AppLockerInfo.isAntiUninstallOn = enableAntiUninstall
     }
 
-    if (isVisible.value) {
+    var isDonationDialogVisible by remember { mutableStateOf(false) }
+
+    if (isDonationDialogVisible) {
+        DonationDialog {
+            isDonationDialogVisible = false
+        }
+    } else {
+
         Dialog(
             onDismissRequest = { onDismiss() },
             properties = DialogProperties(
@@ -152,16 +161,20 @@ fun SettingsDialog(
                         item {
                             SettingCheckBox(
                                 title = "Anti Uninstall",
-                                subtitle = "Get notified about app locks and breaks",
+                                subtitle = "Block any uninstallation attempts to the app",
                                 icon = Icons.Default.Lock,
                                 checked = enableAntiUninstall,
                                 onCheckedChange = {
-                                    val isDeviceAdmin = isDeviceAdminEnabled(context, DeviceAdmin::class.java)
-                                    if(isDeviceAdmin) {
+                                    val isDeviceAdmin =
+                                        isDeviceAdminEnabled(context, DeviceAdmin::class.java)
+                                    if (isDeviceAdmin) {
                                         enableAntiUninstall = it
-                                    }else{
-                                        Toast.makeText(context,"Please enable device admin to use this feature",
-                                            Toast.LENGTH_SHORT).show()
+                                    } else {
+                                        Toast.makeText(
+                                            context,
+                                            "Please enable device admin to use this feature",
+                                            Toast.LENGTH_SHORT
+                                        ).show()
                                         openDeviceAdmin(context)
                                     }
                                 }
@@ -172,13 +185,24 @@ fun SettingsDialog(
                                 title = "Change Passcode",
                                 icon = Icons.Default.Lock,
                                 onClick = {
-                                    val intent = Intent(context, AppLockActivity::class.java).apply {
-                                        addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP)
-                                        addFlags(Intent.FLAG_ACTIVITY_EXCLUDE_FROM_RECENTS)
+                                    val intent =
+                                        Intent(context, AppLockActivity::class.java).apply {
+                                            addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP)
+                                            addFlags(Intent.FLAG_ACTIVITY_EXCLUDE_FROM_RECENTS)
 
-                                        putExtra("is_change_pin", true)
-                                    }
+                                            putExtra("is_change_pin", true)
+                                        }
                                     context.startActivity(intent)
+                                },
+                                enabled = true
+                            )
+                        }
+                        item {
+                            AnimatedActionButton(
+                                title = "Donate",
+                                icon = Icons.Default.Favorite,
+                                onClick = {
+                                    isDonationDialogVisible = true
                                 },
                                 enabled = true
                             )
@@ -229,7 +253,6 @@ fun SettingsDialog(
         }
     }
 }
-
 @Composable
 fun SettingSectionHeader(title: String) {
     Text(
