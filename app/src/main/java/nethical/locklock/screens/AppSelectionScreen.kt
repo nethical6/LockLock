@@ -179,7 +179,7 @@ fun AppSelectionScreen() {
                     singleLine = true
                 )
             }
-            items(filteredAppList) { app ->
+            items(filteredAppList.sortedBy { it.name }) { app ->
                 AppSelectionItem(
                     app = app,
                     onToggle = { packageName ->

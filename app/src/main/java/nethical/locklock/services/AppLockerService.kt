@@ -1,5 +1,6 @@
 package nethical.locklock.services
 
+import android.R.id.input
 import android.accessibilityservice.AccessibilityService
 import android.accessibilityservice.AccessibilityService.GLOBAL_ACTION_HOME
 import android.annotation.SuppressLint
@@ -32,7 +33,7 @@ import java.util.Locale
 import kotlin.jvm.java
 
 const val INTENT_ACTION_APP_UNLOCKED = "nethical.locklock.UNLOCKED"
-val ANTI_UNINSTALL_KEYWORDS = hashSetOf<String>("uninstall","forcestop","security","privacy","shortcut","locklocktscreen","admin")
+val ANTI_UNINSTALL_KEYWORDS = hashSetOf<String>("uninstall","forcestop","security","privacy","shortcut","locklocktscreen","admin","stop")
 object AppLockerInfo {
     var lockedApps = hashSetOf<String>()
     var isAntiUninstallOn = false
@@ -132,16 +133,18 @@ class AppLockerService : AccessibilityService() {
         if (node.className != null && node.className == "android.widget.TextView") {
             val nodeText = node.text
             if (nodeText != null) {
-                val editTextContent = nodeText.toString().lowercase(Locale.getDefault())
+                val editTextContent = nodeText.toString().lowercase(Locale.getDefault()).cleanText()
+                Log.d("content",editTextContent)
                 ANTI_UNINSTALL_KEYWORDS.forEachIndexed { i, word ->
-                    if (editTextContent.replace(" ","").contains(word)) {
+                    if (editTextContent.contains(word)) {
                         keywordsFound.add(word)
                         Log.d("AntiUninstall","Found a Blocked Word:  $word")
-                    }
-                    if(keywordsFound.isNotEmpty() && editTextContent.contains("locklock")){
-                        pressHome()
-                        keywordsFound.clear()
-                        return
+                        if(editTextContent.contains("locklock")){
+
+                            pressHome()
+                            keywordsFound.clear()
+                            return
+                        }
                     }
                     if(i==ANTI_UNINSTALL_KEYWORDS.size-1) keywordsFound.clear()
                 }
@@ -155,7 +158,7 @@ class AppLockerService : AccessibilityService() {
     }
 
     fun pressHome() {
-        if (isDelayOver(lastBackPressTimeStamp,10000)) {
+        if (isDelayOver(lastBackPressTimeStamp,1000)) {
             performGlobalAction(GLOBAL_ACTION_HOME)
             lastBackPressTimeStamp = SystemClock.uptimeMillis()
         }
@@ -167,4 +170,7 @@ class AppLockerService : AccessibilityService() {
 fun isDelayOver(lastTimestamp: Long, delay: Int): Boolean {
     val currentTime = SystemClock.uptimeMillis().toFloat()
     return currentTime - lastTimestamp > delay
+}
+fun String.cleanText():String {
+    return replace(Regex("[^A-Za-z0-9]"), "")
 }
