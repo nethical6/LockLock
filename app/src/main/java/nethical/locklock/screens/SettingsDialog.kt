@@ -67,10 +67,15 @@ fun SettingsDialog(
     fun onDismiss() {
         isVisible.value = false
     }
-    var enableAntiUninstall by remember { mutableStateOf(true) }
+    var enableAntiUninstall by remember { mutableStateOf(false) }
+    val additionalInfoSp = context.getSharedPreferences("additional_info",Context.MODE_PRIVATE)
+
+    LaunchedEffect(Unit) {
+        val additionalInfoSp = context.getSharedPreferences("additional_info",Context.MODE_PRIVATE)
+        enableAntiUninstall = additionalInfoSp.getBoolean("is_anti_uninstall",false)
+    }
 
     LaunchedEffect(enableAntiUninstall) {
-        val additionalInfoSp = context.getSharedPreferences("additional_info",Context.MODE_PRIVATE)
         additionalInfoSp.edit(commit = true) {
             putBoolean(
                 "is_anti_uninstall",
@@ -201,7 +206,7 @@ fun SettingsDialog(
                             shape = RoundedCornerShape(12.dp)
                         ) {
                             Text(
-                                text = "Save",
+                                text = "Done",
                                 style = MaterialTheme.typography.labelLarge
                             )
                         }

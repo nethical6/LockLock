@@ -1,9 +1,7 @@
 @file:OptIn(ExperimentalMaterial3Api::class)
 package nethical.locklock.screens
 
-import android.R.attr.text
 import android.content.Context.MODE_PRIVATE
-import android.os.SystemClock
 import android.util.Log
 import android.widget.Toast
 import androidx.compose.foundation.Image
@@ -21,7 +19,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
@@ -35,8 +32,6 @@ import nethical.locklock.R
 import nethical.locklock.data.AppInfo
 import nethical.locklock.utils.loadAppInfo
 import androidx.core.content.edit
-import kotlin.time.Duration.Companion.minutes
-import kotlin.time.Duration.Companion.seconds
 
 enum class ChangePinStep {
                          INCORRECT,
@@ -71,6 +66,7 @@ fun LockScreen(
     var attempts by remember { mutableLongStateOf(0L) }
     var cooldownRemaining by remember { mutableStateOf(0L) }
 
+    var isSecurityQuestionDialogVisible by remember { mutableStateOf(false) }
     // Auto-focus effect
     LaunchedEffect(Unit) {
         isVisible = true
@@ -185,6 +181,47 @@ fun LockScreen(
             passcode.value = ""
         }
     }
+    
+    if(isSecurityQuestionDialogVisible){
+        AnswerSecurityQuestionDialog(
+            question = currentPinSp.getString("recovery_question","The default pin is 0000").toString(),
+            onDismiss = {
+                isSecurityQuestionDialogVisible = false
+            },
+            onConfirm = { answer ->
+                val correctA = currentPinSp.getString("recovery_answer", "")
+
+                val now = System.currentTimeMillis()
+                val failedAttempts = currentPinSp.getInt("sq_failed_attempts", 0)
+
+                if ( answer.trim() == correctA) {
+                    // Success
+                    currentPinSp.edit { remove("sq_failed_attempts").remove("sq_cooldown_end") }
+                    Toast.makeText(context, "Your pin is $currentPin", Toast.LENGTH_SHORT).show()
+                } else {
+                    val newFails = failedAttempts + 1
+                    val cooldown = if (newFails >= 3) newFails * 30 * 1000L else 0L // 30s × attempts
+
+                    currentPinSp.edit(commit = true) {
+                        putInt("sq_failed_attempts", newFails)
+                        if (cooldown > 0) {
+                            putLong("sq_cooldown_end", now + cooldown)
+                        }
+                    }
+
+                    Toast.makeText(
+                        context,
+                        if (cooldown > 0) "Too many attempts. Try again in ${cooldown / 1000}s"
+                        else "Incorrect answer. Attempt $newFails",
+                        Toast.LENGTH_SHORT
+                    ).show()
+                }
+                isSecurityQuestionDialogVisible = false
+
+            }
+        )
+    }
+    
     Box(
         modifier = Modifier
             .fillMaxSize()
@@ -196,8 +233,10 @@ fun LockScreen(
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center
         ) {
+            
             Spacer(modifier = Modifier.height(48.dp))
 
+            
             // Lock Icon
 
             Box(
@@ -262,44 +301,44 @@ fun LockScreen(
                     color = MaterialTheme.colorScheme.onSurface,
                 )
 
-                Spacer(modifier = Modifier.height(24.dp))
-
-                // Passcode Input
-
-                OutlinedTextField(
-                    value = passcode.value,
-                    onValueChange = { if (it.length <= 6) passcode.value = it },
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(16.dp)
-                        .focusRequester(focusRequester),
-                    label = { Text("Passcode") },
-                    visualTransformation = if (isPasswordVisible)
-                        VisualTransformation.None else PasswordVisualTransformation(),
-                    trailingIcon = {
-                        IconButton(
-                            onClick = { isPasswordVisible = !isPasswordVisible }
-                        ) {
-                            Icon(
-                                painter = painterResource(if (isPasswordVisible) R.drawable.baseline_visibility_off_24 else R.drawable.baseline_visibility_24),
-                                contentDescription = if (isPasswordVisible)
-                                    "Hide password" else "Show password"
-                            )
-                        }
-                    },
-                    keyboardOptions = KeyboardOptions(
-                        keyboardType = KeyboardType.NumberPassword,
-                        imeAction = ImeAction.Done
-                    ),
-                    keyboardActions = KeyboardActions(
-                        onDone = { handleSubmit() }
-                    ),
-                    singleLine = true,
-                    colors = OutlinedTextFieldDefaults.colors(
-                        focusedBorderColor = MaterialTheme.colorScheme.primary,
-                        unfocusedBorderColor = MaterialTheme.colorScheme.outline.copy(alpha = 0.5f)
+                if(pinChangeStep != ChangePinStep.INCORRECT) {
+                    Spacer(modifier = Modifier.height(24.dp))
+                    // Passcode Input
+                    OutlinedTextField(
+                        value = passcode.value,
+                        onValueChange = { if (it.length <= 6) passcode.value = it },
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(16.dp)
+                            .focusRequester(focusRequester),
+                        label = { Text("Passcode") },
+                        visualTransformation = if (isPasswordVisible)
+                            VisualTransformation.None else PasswordVisualTransformation(),
+                        trailingIcon = {
+                            IconButton(
+                                onClick = { isPasswordVisible = !isPasswordVisible }
+                            ) {
+                                Icon(
+                                    painter = painterResource(if (isPasswordVisible) R.drawable.baseline_visibility_off_24 else R.drawable.baseline_visibility_24),
+                                    contentDescription = if (isPasswordVisible)
+                                        "Hide password" else "Show password"
+                                )
+                            }
+                        },
+                        keyboardOptions = KeyboardOptions(
+                            keyboardType = KeyboardType.NumberPassword,
+                            imeAction = ImeAction.Done
+                        ),
+                        keyboardActions = KeyboardActions(
+                            onDone = { handleSubmit() }
+                        ),
+                        singleLine = true,
+                        colors = OutlinedTextFieldDefaults.colors(
+                            focusedBorderColor = MaterialTheme.colorScheme.primary,
+                            unfocusedBorderColor = MaterialTheme.colorScheme.outline.copy(alpha = 0.5f)
+                        )
                     )
-                )
+                }
                 Spacer(modifier = Modifier.height(24.dp))
 
                 // Submit Button
@@ -314,29 +353,35 @@ fun LockScreen(
                     )
                 ) {
                     Text(
-                        text = if (isChangePin) "Set" else "Unlock",
+                        text = if (isChangePin) {
+                            if(pinChangeStep == ChangePinStep.INCORRECT) "Try Again" else "Set Pin"
+                        } else
+                            "Unlock",
                         style = MaterialTheme.typography.titleMedium.copy(
                             fontWeight = FontWeight.SemiBold
                         )
                     )
                 }
 
-                Spacer(modifier = Modifier.height(32.dp))
 
-                TextButton(
-                    onClick = { /* Handle biometric */ },
-                ) {
-                    Icon(
-                        imageVector = Icons.Default.Warning,
-                        contentDescription = "Forgot Passcode",
-                        modifier = Modifier.size(20.dp)
-                    )
-                    Spacer(modifier = Modifier.width(8.dp))
-                    Text(
-                        text = "Forgot Passcode",
-                        color = MaterialTheme.colorScheme.primary
-                    )
+                if(!isChangePin){
+                    Spacer(modifier = Modifier.height(32.dp))
+                    TextButton(
+                        onClick = { isSecurityQuestionDialogVisible = true },
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Warning,
+                            contentDescription = "Forgot Passcode",
+                            modifier = Modifier.size(20.dp)
+                        )
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Text(
+                            text = "Forgot Passcode",
+                            color = MaterialTheme.colorScheme.primary
+                        )
+                    }
                 }
+                
             }
         }
     }

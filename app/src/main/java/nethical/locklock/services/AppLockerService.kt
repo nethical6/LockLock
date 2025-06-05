@@ -22,7 +22,7 @@ const val INTENT_ACTION_APP_UNLOCKED = "nethical.locklock.UNLOCKED"
 val ANTI_UNINSTALL_KEYWORDS = hashSetOf<String>("uninstall","forcestop","security","privacy","shortcut","locklocktscreen","admin")
 object AppLockerInfo {
     var lockedApps = hashSetOf<String>()
-    var isAntiUninstallOn = true
+    var isAntiUninstallOn = false
 }
 
 
