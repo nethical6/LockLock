@@ -9,11 +9,17 @@ import android.content.Context.MODE_PRIVATE
 import android.content.Intent
 import android.content.IntentFilter
 import android.os.Build
+import android.os.SystemClock
 import android.util.Log
 import android.view.accessibility.AccessibilityEvent
 import android.view.accessibility.AccessibilityNodeInfo
 import androidx.core.content.ContextCompat.registerReceiver
 import androidx.core.content.ContextCompat.startActivity
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 import nethical.locklock.AppLockActivity
 import java.util.Locale
 import kotlin.jvm.java
@@ -30,7 +36,10 @@ class AppLockerService : AccessibilityService() {
     private var lastPackage = ""
     private var temporarilyUnlocked = ""
     private var keywordsFound = hashSetOf<String>()
+    var lastBackPressTimeStamp: Long =
+        SystemClock.uptimeMillis()
 
+    private var lockLaunchJob: Job? = null
     override fun onAccessibilityEvent(event: AccessibilityEvent?) {
         val openedApp = event?.packageName?.toString() ?: return
 
@@ -52,14 +61,20 @@ class AppLockerService : AccessibilityService() {
         if (AppLockerInfo.lockedApps.contains(openedApp) && temporarilyUnlocked==(openedApp)) {
             return
         }
-        if (AppLockerInfo.lockedApps.contains(openedApp)) {
-            val intent = Intent(this, AppLockActivity::class.java).apply {
-                addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP)
-                addFlags(Intent.FLAG_ACTIVITY_EXCLUDE_FROM_RECENTS)
+        if (AppLockerInfo.lockedApps.contains(openedApp) && lockLaunchJob?.isActive != true) {
+            lockLaunchJob?.cancel()
+            pressHome()
+            lockLaunchJob = CoroutineScope(Dispatchers.Main).launch {
+                delay(1000) // 1 second delay
 
-                putExtra("locked_package", openedApp)
+                val intent = Intent(this@AppLockerService, AppLockActivity::class.java).apply {
+                    addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP)
+                    addFlags(Intent.FLAG_ACTIVITY_EXCLUDE_FROM_RECENTS)
+                    putExtra("locked_package", openedApp)
+                }
+
+                startActivity(intent)
             }
-            startActivity(intent)
         }
     }
 
@@ -115,7 +130,7 @@ class AppLockerService : AccessibilityService() {
                         Log.d("AntiUninstall","Found a Blocked Word:  $word")
                     }
                     if(keywordsFound.isNotEmpty() && editTextContent.contains("locklock")){
-                        performGlobalAction(GLOBAL_ACTION_HOME)
+                        pressHome()
                         keywordsFound.clear()
                         return
                     }
@@ -130,5 +145,17 @@ class AppLockerService : AccessibilityService() {
         }
     }
 
+    fun pressHome() {
+        if (isDelayOver(lastBackPressTimeStamp,10000)) {
+            performGlobalAction(GLOBAL_ACTION_HOME)
+            lastBackPressTimeStamp = SystemClock.uptimeMillis()
+        }
+    }
 }
 
+
+
+fun isDelayOver(lastTimestamp: Long, delay: Int): Boolean {
+    val currentTime = SystemClock.uptimeMillis().toFloat()
+    return currentTime - lastTimestamp > delay
+}
