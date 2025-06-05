@@ -44,3 +44,5 @@ LockLock is a lightweight, privacy-first app locking solution designed to secure
 * **Accessibility Service:** Required to monitor and block locked apps without root.
 * **Device Administrator:** Required to prevent unauthorized uninstall and enhance security.
 
+Tags:
+app lock, app locker, lock apps, password lock, pin lock,, app protection, secure apps, app privacy, phone locker, screen lock, intruder protection, privacy guard, secure phone, app security, anti snooping, privacy lock, vault app, lockdown mode, stealth mode, device admin, unbreakable lock, minimal lock, fast app lock, badass locker, hacker-proof, parental control, productivity lock, anti distraction, screen time guard, no bloat, offline security, android, free, open source, compose, material, nethical
