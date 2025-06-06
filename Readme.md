@@ -69,12 +69,5 @@ Click on any image to enlarge it.
 
 ## Support & Feedback
 
-Questions, suggestions, or issues? Reach out on \[your contact info or support channel].
+Questions, suggestions, or issues? Reach out on @nethicalps at Telegram or aguptaq88@gmail.com.
 
----
-
-LockLock — **Your Privacy, Locked Tight.** 🔐
-
-Tags:
-app lock, app locker, lock apps, password lock, pin lock, pattern lock, app protection, secure apps, app privacy, phone locker, screen lock, intruder protection, privacy guard, secure phone, app security, anti snooping, privacy lock, vault app, lockdown mode, stealth mode, device admin, unbreakable lock, minimal lock, fast app lock, badass locker, hacker-proof, parental control, productivity lock, anti distraction, screen time guard, no bloat, offline security, android, free, open source, compose, material, nethical
----
