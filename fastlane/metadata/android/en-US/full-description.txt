@@ -1,5 +1,3 @@
-# LockLock – Ultimate Privacy-Focused App Locker for Android
-
 LockLock is a lightweight, privacy-first app locking solution designed to secure your apps without requiring root access or internet connectivity. Built with modern Material 3 design principles, LockLock offers a seamless, elegant user experience while providing strong protection for your personal data.
 
 ## Features

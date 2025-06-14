@@ -28,6 +28,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.Lock
+import androidx.compose.material.icons.filled.Star
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
@@ -59,6 +60,7 @@ import androidx.core.content.ContextCompat.startActivity
 import nethical.locklock.AppLockActivity
 import nethical.locklock.screens.components.AnimatedSwitch
 import androidx.core.content.edit
+import androidx.core.net.toUri
 import nethical.locklock.DeviceAdmin
 import nethical.locklock.services.AppLockerInfo
 import nethical.locklock.utils.isDeviceAdminEnabled
@@ -208,6 +210,19 @@ fun SettingsDialog(
                             )
                         }
 
+                        item {
+                            AnimatedActionButton(
+                                title = "Star on Github",
+                                icon = Icons.Default.Star,
+                                onClick = {
+                                    val intent = Intent(Intent.ACTION_VIEW,
+                                        "https://github.com/nethical6/locklock".toUri()
+                                    )
+                                    context.startActivity(intent)
+                                },
+                                enabled = true
+                            )
+                        }
                     }
 
                     Spacer(modifier = Modifier.height(24.dp))
