@@ -1,26 +1,21 @@
 LockLock is a lightweight, privacy-first app locking solution designed to secure your apps without requiring root access or internet connectivity. Built with modern Material 3 design principles, LockLock offers a seamless, elegant user experience while providing strong protection for your personal data.
 
-## Features
+<b>Features</b>
 
 * **App Locking Without Root**
   LockLock uses Android Accessibility Services to detect and block unauthorized app launches, securing your apps with a customizable password or PIN.
-
 * **Anti-Uninstall Protection**
   By leveraging Device Administrator privileges, LockLock prevents unauthorized uninstall attempts, safeguarding your app locks from tampering.
-
 * **Brute Force Protection**
   To protect against password guessing, LockLock temporarily locks the app after repeated failed unlock attempts.
-
 * **Forgot Password Support**
   Securely recover access with a security question if you forget your password.
-
 * **Material 3 UI**
   Enjoy a clean, modern interface designed for intuitive navigation and ease of use.
-
 * **Fully Offline Operation**
   No internet permissions or connectivity required — your data stays private and local to your device.
 
-## Why Choose LockLock?
+<b>Why Choose LockLock?</b>
 
 * No root required
 * Privacy-focused, no data leaves your device
@@ -29,7 +24,7 @@ LockLock is a lightweight, privacy-first app locking solution designed to secure
 * Lightweight and resource-efficient
 * Open source and community-driven
 
-## Installation & Setup
+<b>Installation & Setup</b>
 
 1. Download and install LockLock via the F-Droid app (recommended for smooth permission setup).
 2. Launch the app and set your master password and security question.
@@ -37,10 +32,8 @@ LockLock is a lightweight, privacy-first app locking solution designed to secure
 4. Select which apps to lock.
 5. LockLock will immediately start protecting your selected apps with the configured password.
 
-## Permissions
+<b>Permissions</b>
 
 * **Accessibility Service:** Required to monitor and block locked apps without root.
 * **Device Administrator:** Required to prevent unauthorized uninstall and enhance security.
 
-Tags:
-app lock, app locker, lock apps, password lock, pin lock,, app protection, secure apps, app privacy, phone locker, screen lock, intruder protection, privacy guard, secure phone, app security, anti snooping, privacy lock, vault app, lockdown mode, stealth mode, device admin, unbreakable lock, minimal lock, fast app lock, badass locker, hacker-proof, parental control, productivity lock, anti distraction, screen time guard, no bloat, offline security, android, free, open source, compose, material, nethical
